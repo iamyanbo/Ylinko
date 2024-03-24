@@ -2,22 +2,33 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Engine, Render, World, Bodies, Runner, Events } from "matter-js";
 import Matter from "matter-js";
 import BasicSpeedDial from "./speedDial";
+import { Box, Modal, Typography } from "@mui/material";
 
 
-function Plinko() {
+function InfinitePlinko() {
     const scene = useRef<HTMLDivElement>(null);
     const engineRef = useRef<any>(null as any);
     const [score, setScore] = useState(0);
     const [useCustom, setUseCustom] = useState(true);
     const [customValue, setCustomValue] = useState(1);
-    const [balls, setBalls] = useState(100);
+    const [balls, setBalls] = useState(1);
     const [percent, setPercent] = useState(1);
+    const [openModal, setOpenModal] = useState(false);
+    const [ballsInPlay, setBallsInPlay] = useState(0);
+
+    const handleOpenModal = () => {
+        setOpenModal(true);
+    }
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+    };
 
     const decrementBalls = useCallback(() => {
         setBalls(prevBall => {
-            console.log(prevBall - customValue);
             return prevBall - customValue;
         });
+        setBallsInPlay(prevBallsInPlay => prevBallsInPlay + 1);
     }, [customValue]);
 
     interface CustomBallDefinition extends Matter.IBodyDefinition {
@@ -25,7 +36,8 @@ function Plinko() {
     }
 
     const spawnNewBall = useCallback(() => {
-        if (balls > 0 && customValue > 0) {
+        if (Math.floor(balls) > 0 && customValue > 0 && customValue <= Math.floor(balls)) {
+            console.log(balls, customValue);
             let x = Math.random() * 40 + 380;
             const value = customValue;
             const ball = Bodies.circle(x, -9, 12, {
@@ -38,7 +50,6 @@ function Plinko() {
                 value: value,
             } as CustomBallDefinition);
             Matter.Body.setMass(ball, 0.005);
-            console.log(engineRef.current!.world)
             World.add(engineRef.current!.world, [ball]);
             decrementBalls();
         }
@@ -65,7 +76,6 @@ function Plinko() {
     }, [useCustom, percent, balls]);
 
     useEffect(() => {
-        console.log("Initializing")
         engineRef.current = Engine.create();
         const engine = engineRef.current;
         const render = Render.create({
@@ -221,28 +231,24 @@ function Plinko() {
                 const { bodyA, bodyB } = pair;
                 if (bottomCubes.includes(bodyA)) {
                     if (collisions.has(bodyB.id)) {
-                        console.log("Already collided");
                         return;
                     }
                     collisions.add(bodyB.id);
                     // Remove ball from the world
                     setScore(prevScore => prevScore + (bodyB as CustomBallDefinition).value * (bodyA as CustomBodyDefinition).multiplier);
+                    setBalls(prevBalls => prevBalls + (bodyB as CustomBallDefinition).value * (bodyA as CustomBodyDefinition).multiplier);
+                    setBallsInPlay(prevBallsInPlay => prevBallsInPlay - 1);
                     World.remove(engine.world, bodyB);
-                    // Log a message
-                    const multiplier = (bodyA as CustomBodyDefinition).multiplier;
-                    console.log(multiplier);
                 } else if (bottomCubes.includes(bodyB)) {
                     if (collisions.has(bodyA.id)) {
-                        console.log("Already collided");
                         return;
                     }
                     collisions.add(bodyA.id);
                     // Remove ball from the world
                     setScore(prevScore => prevScore + (bodyA as CustomBallDefinition).value * (bodyB as CustomBodyDefinition).multiplier);
+                    setBalls(prevBalls => prevBalls + (bodyA as CustomBallDefinition).value * (bodyB as CustomBodyDefinition).multiplier);
+                    setBallsInPlay(prevBallsInPlay => prevBallsInPlay - 1);
                     World.remove(engine.world, bodyA);
-                    // Log a message
-                    const multiplier = (bodyB as CustomBodyDefinition).multiplier;
-                    console.log(multiplier);
                 }
             });
         };
@@ -290,12 +296,29 @@ function Plinko() {
         }
     }, []);
 
+    useEffect(() => {
+        if (Math.floor(balls) === 0 && customValue === 0 && ballsInPlay === 0) {
+            handleOpenModal();
+        }
+        // Logic to add balls back
+        if (!useCustom) {
+            setCustomValue(Math.floor(balls * (percent / 100)));
+        } else {
+            if (Math.floor(balls) === 0 && customValue > 0) {
+                setCustomValue(0);
+            }
+            if (customValue === 0 && Math.floor(balls) > 0) {
+                setCustomValue(Math.floor(balls) > 0 ? 1 : 0);
+            }
+        }
+    }, [balls, useCustom, percent, customValue]);
+
     const setCustom = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUseCustom(event.target.checked);
     }
 
     const setValue = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCustomValue(Math.floor(Number(event.target.value)));
+        setCustomValue(Number(event.target.value));
         setUseCustom(true);
     }
 
@@ -316,15 +339,6 @@ function Plinko() {
         setCustomValue(Math.floor(balls * 0.1));
         setUseCustom(false);
     }
-
-    useEffect(() => {
-        if (customValue > balls) {
-            setCustomValue(balls);
-        }
-        if (customValue < 0) {
-            setCustomValue(0);
-        }
-    }, [customValue, balls]);
 
     return (
         <div className="flex flex-row items-center justify-center w-full bg-black h-full">
@@ -364,8 +378,6 @@ function Plinko() {
                 </button>
                 <input type="number" className="w-20 h-10 px-2 py-1 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800" 
                     min={0}
-                    max={balls}
-                    step={1}
                     onChange={setValue}
                     placeholder="Custom"
                     value={customValue}
@@ -380,8 +392,23 @@ function Plinko() {
                 </label>
                 <BasicSpeedDial />
             </div>
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        Game Over!
+                    </Typography>
+                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                        Your score: {score.toFixed(1)}
+                    </Typography>
+                </Box>
+            </Modal>
         </div>
     );
 }
 
-export default Plinko;
+export default InfinitePlinko;
