@@ -208,7 +208,7 @@ function Plinko() {
             }
         };
 
-        createPyramid(359, -60, 20, 5, 15.7, 30);
+        createPyramid(359, -60, 20, 5, 15.7, 30.5);
 
         Matter.Runner.run(Runner.create(), engine);
         Render.run(render);
