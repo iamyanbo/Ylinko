@@ -1,4 +1,4 @@
-# Plinko Game
+# Ylinkp
 
 This is a Plinko game built using React and TypeScript. In this game, balls are dropped from the top of the screen and bounce off pegs before landing in slots at the bottom. Each slot has a different score multiplier, and the goal is to maximize your score by strategically dropping the balls.
 
@@ -23,4 +23,8 @@ This is a Plinko game built using React and TypeScript. In this game, balls are 
 
 Clicking on the "How To Play" option in the Speed Dial menu opens a modal window with instructions on how to play the game effectively. The modal provides step-by-step guidance on how to play the game and maximize your score.
 
-Enjoy playing Plinko!
+## Game Modes
+
+There are two game modes, "YOLO" and "Infinite". The first one restricts you to 100 balls while the other allows you to keep dropping balls as long you have more than 1.
+
+Enjoy playing Ylinko!
