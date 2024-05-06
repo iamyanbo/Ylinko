@@ -17,6 +17,9 @@ export default function BasicSpeedDial() {
   const [openModal, setOpenModal] = React.useState(false);
 
   const handleOpenModal = (name: string) => {
+    if (name === 'Github'){
+        window.open('https://github.com/iamyanbo/Ylinko', '_blank');
+    }
     if (name === 'How To Play'){
         setOpenModal(true);
     }
