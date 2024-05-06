@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Engine, Render, World, Bodies, Runner, Events } from "matter-js";
 import Matter from "matter-js";
 import BasicSpeedDial from "./speedDial";
+import { Box, Modal, Typography } from "@mui/material";
 
 
 function Plinko() {
@@ -12,11 +13,22 @@ function Plinko() {
     const [customValue, setCustomValue] = useState(1);
     const [balls, setBalls] = useState(100);
     const [percent, setPercent] = useState(1);
+    const [openModal, setOpenModal] = useState(false);
+    const [ballsInPlay, setBallsInPlay] = useState(0);
+
+    const handleOpenModal = () => {
+        setOpenModal(true);
+    }
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+    };
 
     const decrementBalls = useCallback(() => {
         setBalls(prevBall => {
             return prevBall - customValue;
         });
+        setBallsInPlay(prevBallsInPlay => prevBallsInPlay + customValue);
     }, [customValue]);
 
     interface CustomBallDefinition extends Matter.IBodyDefinition {
@@ -222,6 +234,7 @@ function Plinko() {
                     collisions.add(bodyB.id);
                     // Remove ball from the world
                     setScore(prevScore => prevScore + (bodyB as CustomBallDefinition).value * (bodyA as CustomBodyDefinition).multiplier);
+                    setBallsInPlay(prevBallsInPlay => prevBallsInPlay - 1);
                     World.remove(engine.world, bodyB);
                 } else if (bottomCubes.includes(bodyB)) {
                     if (collisions.has(bodyA.id)) {
@@ -230,8 +243,8 @@ function Plinko() {
                     collisions.add(bodyA.id);
                     // Remove ball from the world
                     setScore(prevScore => prevScore + (bodyA as CustomBallDefinition).value * (bodyB as CustomBodyDefinition).multiplier);
+                    setBallsInPlay(prevBallsInPlay => prevBallsInPlay - 1);
                     World.remove(engine.world, bodyA);
-
                 }
             });
         };
@@ -326,6 +339,12 @@ function Plinko() {
         }
     }, [customValue, balls]);
 
+    useEffect(() => {
+        if (balls <= 0 && ballsInPlay <= 0) {
+            handleOpenModal();
+        }
+    }, [balls, ballsInPlay]);
+
     return (
         <div className="flex flex-row items-center justify-center w-full bg-black h-full">
             <div ref={scene} style={{ width: 800, height: 800 }}></div>
@@ -380,6 +399,21 @@ function Plinko() {
                 </label>
                 <BasicSpeedDial />
             </div>
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        Game Over!
+                    </Typography>
+                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                        Your score: {score.toFixed(1)}
+                    </Typography>
+                </Box>
+            </Modal>
         </div>
     );
 }

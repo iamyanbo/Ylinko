@@ -310,7 +310,7 @@ function InfinitePlinko() {
                 setCustomValue(Math.floor(balls) > 0 ? 1 : 0);
             }
         }
-    }, [balls, useCustom, percent, customValue]);
+    }, [balls, useCustom, percent, customValue, ballsInPlay]);
 
     const setCustom = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUseCustom(event.target.checked);
