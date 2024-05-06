@@ -15,7 +15,6 @@ function Plinko() {
 
     const decrementBalls = useCallback(() => {
         setBalls(prevBall => {
-            console.log(prevBall - customValue);
             return prevBall - customValue;
         });
     }, [customValue]);
@@ -28,7 +27,7 @@ function Plinko() {
         if (balls > 0 && customValue > 0) {
             let x = Math.random() * 40 + 380;
             const value = customValue;
-            const ball = Bodies.circle(x, -9, 12, {
+            const ball = Bodies.circle(x, -15, 12, {
                 restitution: 0.5,
                 collisionFilter: {
                     group: -1,
@@ -38,7 +37,6 @@ function Plinko() {
                 value: value,
             } as CustomBallDefinition);
             Matter.Body.setMass(ball, 0.005);
-            console.log(engineRef.current!.world)
             World.add(engineRef.current!.world, [ball]);
             decrementBalls();
         }
@@ -65,7 +63,6 @@ function Plinko() {
     }, [useCustom, percent, balls]);
 
     useEffect(() => {
-        console.log("Initializing")
         engineRef.current = Engine.create();
         const engine = engineRef.current;
         const render = Render.create({
@@ -210,7 +207,6 @@ function Plinko() {
 
         createPyramid(359, -60, 20, 5, 15.7, 30.5);
 
-        Matter.Runner.run(Runner.create(), engine);
         Render.run(render);
 
         const collisions = new Set();
@@ -221,28 +217,21 @@ function Plinko() {
                 const { bodyA, bodyB } = pair;
                 if (bottomCubes.includes(bodyA)) {
                     if (collisions.has(bodyB.id)) {
-                        console.log("Already collided");
                         return;
                     }
                     collisions.add(bodyB.id);
                     // Remove ball from the world
                     setScore(prevScore => prevScore + (bodyB as CustomBallDefinition).value * (bodyA as CustomBodyDefinition).multiplier);
                     World.remove(engine.world, bodyB);
-                    // Log a message
-                    const multiplier = (bodyA as CustomBodyDefinition).multiplier;
-                    console.log(multiplier);
                 } else if (bottomCubes.includes(bodyB)) {
                     if (collisions.has(bodyA.id)) {
-                        console.log("Already collided");
                         return;
                     }
                     collisions.add(bodyA.id);
                     // Remove ball from the world
                     setScore(prevScore => prevScore + (bodyA as CustomBallDefinition).value * (bodyB as CustomBodyDefinition).multiplier);
                     World.remove(engine.world, bodyA);
-                    // Log a message
-                    const multiplier = (bodyB as CustomBodyDefinition).multiplier;
-                    console.log(multiplier);
+
                 }
             });
         };
@@ -275,6 +264,17 @@ function Plinko() {
         }
 
         Events.on(engine, 'collisionStart', handleCollision);
+
+        let lastUpdateTime = performance.now();
+        const update = () => {
+            const currentTime = performance.now();
+            const deltaTime = currentTime - lastUpdateTime;
+            lastUpdateTime = currentTime;
+            Engine.update(engine, deltaTime);
+            requestAnimationFrame(update);
+        };
+    
+        update();
 
         return () => {
             Events.off(engine, 'collisionStart', handleCollision);

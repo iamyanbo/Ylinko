@@ -13,38 +13,31 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { useNavigate } from 'react-router-dom';
+import logoImage from '../assets/plinkoLogo.png';
 
-const pages = ['YOLO', 'Infinite', 'Multiplayer'];
-const description = ['For you only live once.', 'Keep going, until you can\'t anymore.', 'Play with friends, or foes.']
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const pages = ['YOLO', 'Infinite'];
+const description = ['For you only live once.', 'Keep going, until you can\'t anymore.']
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const navigate = useNavigate();
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
   };
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
   };
 
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
-
   return (
     <AppBar position="static" sx={{ height: '70px', background: 'linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 42%, rgba(91,8,131,1) 100%, rgba(0,212,255,1) 100%)' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, cursor: 'pointer' }} 
-            onClick={() => navigate('/')}
-          />
+
+          <IconButton sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} onClick={() => navigate('/')} >
+            <img src={logoImage} alt="Logo" style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
+          </IconButton>
           <Typography
             variant="h6"
             noWrap
@@ -61,7 +54,7 @@ function ResponsiveAppBar() {
               cursor: 'pointer',
             }}
           >
-            LOGO
+            Ylinko
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -94,18 +87,22 @@ function ResponsiveAppBar() {
               }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
+                <MenuItem key={page} onClick={
+                  () => {
+                    navigate(`/${page.toLowerCase()}`);
+                    handleCloseNavMenu();
+                  }
+                }>
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-          <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            href="/"
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },
@@ -117,7 +114,7 @@ function ResponsiveAppBar() {
               textDecoration: 'none',
             }}
           >
-            LOGO
+            Ylinko
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page, index) => (

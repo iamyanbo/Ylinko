@@ -508,12 +508,15 @@ function HostPlinko() {
     useEffect(() => {
         // Generate a 8 character game code
         const code = uuidv4().substring(0, 8);
-        const p = new Peer({
+        const p = (peer && peer.connected) ? peer : new Peer({
             initiator: true,
             trickle: false,
         });
+        console.log("peer", p);
 
-        setPeer(p);
+        if (!peer.connected) {
+            setPeer(p);
+        }
 
         p.on('signal', (data) => {
             const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), code).toString();

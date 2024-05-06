@@ -11,7 +11,7 @@ function InfinitePlinko() {
     const [score, setScore] = useState(0);
     const [useCustom, setUseCustom] = useState(true);
     const [customValue, setCustomValue] = useState(1);
-    const [balls, setBalls] = useState(1);
+    const [balls, setBalls] = useState(100);
     const [percent, setPercent] = useState(1);
     const [openModal, setOpenModal] = useState(false);
     const [ballsInPlay, setBallsInPlay] = useState(0);
@@ -37,7 +37,6 @@ function InfinitePlinko() {
 
     const spawnNewBall = useCallback(() => {
         if (Math.floor(balls) > 0 && customValue > 0 && customValue <= Math.floor(balls)) {
-            console.log(balls, customValue);
             let x = Math.random() * 40 + 380;
             const value = customValue;
             const ball = Bodies.circle(x, -9, 12, {

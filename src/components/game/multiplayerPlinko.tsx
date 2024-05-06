@@ -31,6 +31,7 @@ function MultiplayerPlinko() {
     const [percent2, setPercent2] = useState(1);
     const [randx, setRandx] = useState(0);
     const [peerRandx, setPeerRandx] = useState(0);
+    const [dataQueue, setDataQueue] = useState([] as any[]);
 
     const sendPeerData = useCallback((x: number, numBalls: number, val: number) => {
         if (peer && peer.connected) {
@@ -505,14 +506,37 @@ function MultiplayerPlinko() {
         }
     }, [customValue, balls]);
 
+    const queueData = (data: any) => {
+        setDataQueue(prevData => [...prevData, data]);
+    }
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (dataQueue.length > 0) {
+                const nextData = dataQueue.shift();
+                if (nextData) {
+                    setPeerRandx(nextData.x);
+                    spawnNewBall2(nextData.x, nextData.val);
+                    setCustomValue2(nextData.val);
+                    setBalls2(nextData.numBalls);
+                }
+            }
+        }, 50); // Adjust this interval as needed
+    
+        return () => clearInterval(interval);
+    }, [dataQueue, spawnNewBall2]);
+
     useEffect(() => {
         const code = uuidv4().substring(0, 8);
-        const p = new Peer({
+        var p = (peer && peer.connected) ? peer : new Peer({
             initiator: false,
             trickle: false,
         });
 
-        setPeer(p);
+        if (!peer.connected) {
+            console.log('Setting peer');
+            setPeer(p);
+        }
 
         p.on('signal', (data) => {
             const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), code).toString();
@@ -528,12 +552,7 @@ function MultiplayerPlinko() {
             // its in form of x, numBalls, val
             try {
                 const parsed = JSON.parse(decoded);
-                const { x, numBalls, val } = parsed;
-                setPeerRandx(x);
-                spawnNewBall2(x, val);
-                setBalls2(numBalls);
-                setCustomValue2(val);
-                console.log("parsed", parsed)
+                queueData(parsed);
             } catch (e) {
                 console.log("error", e);
             }
@@ -551,7 +570,7 @@ function MultiplayerPlinko() {
         p.on('error', (err) => {
             console.log('Error', err);
         });
-    }, [spawnNewBall2]);
+    }, []);
 
     const handleClick = () => {
         // copy data to clipboard
