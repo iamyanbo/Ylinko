@@ -1,7 +1,7 @@
 # Ylinko
 
 This is a Plinko game built using React and TypeScript. In this game, balls are dropped from the top of the screen and bounce off pegs before landing in slots at the bottom. Each slot has a different score multiplier, and the goal is to maximize your score by strategically dropping the balls.
-For a non-install version, visit (here)[https://ylinko.vercel.app/]
+For a non-install version, visit [https://ylinko.vercel.app/]
 
 ## How to Play
 
